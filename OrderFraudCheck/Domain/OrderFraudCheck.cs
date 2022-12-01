@@ -5,15 +5,17 @@ namespace MotorwayPaymentsCodeTest;
 public class OrderFraudCheck
 {
     private readonly IFraudCheckAway _fraudCheckAway;
+    private readonly int _riskScore;
 
-    public OrderFraudCheck(IFraudCheckAway fraudCheckAway)
+    public OrderFraudCheck(IFraudCheckAway fraudCheckAway, int riskScore)
     {
         _fraudCheckAway = fraudCheckAway ?? throw new ArgumentNullException(nameof(fraudCheckAway));
+        _riskScore = riskScore;
     }
 
-    public void Check(string abc123, CustomerOrder customerOrder)
+    public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
     {
-        _fraudCheckAway.Check(new FraudAwayCheck
+        var response = _fraudCheckAway.Check(new FraudAwayCheck
         {
             PersonFullName = $"{customerOrder.CustomerAddress.FirstName} {customerOrder.CustomerAddress.LastName}",
             PersonAddress = new PersonAddress
@@ -24,5 +26,7 @@ public class OrderFraudCheck
                 PostCode = customerOrder.CustomerAddress.PostalCode
             }
         });
+
+        return new FraudCheckResponse { FraudCheckStatus = FraudCheckStatus.Passed };
     }
 }
