@@ -1,6 +1,6 @@
 namespace MotorwayPaymentsCodeTest;
 
-public class FraudProviderResponse
+public class FraudCheckAwayResponse
 {
     public int ResponseCode { get; set; }
     public decimal FraudRiskScore { get; set; }

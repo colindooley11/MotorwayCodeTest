@@ -2,5 +2,5 @@ namespace MotorwayPaymentsCodeTest;
 
 public interface IFraudCheckAway
 {
-    public FraudProviderResponse Check(FraudAwayCheck fraudAwayCheck);
+    public FraudCheckAwayResponse Check(FraudAwayCheck fraudAwayCheck);
 }

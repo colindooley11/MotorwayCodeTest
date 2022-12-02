@@ -8,100 +8,84 @@ using TestStack.BDDfy.Xunit;
 
 namespace OrderFraudCheck.UnitTests;
 
-public class FraudAwayTests
+public class SimpleFraudTests
 {
     private CustomerOrder _customerOrder;
     private Mock<IFraudCheckAway> _fraudCheckAway;
     private FraudCheckResponse _result;
     private MotorwayPaymentsCodeTest.OrderFraudCheck _orderFraudCheck;
     private decimal _riskScoreThreshold;
+    private Guid _customerGuid;
     private FraudCheckAwayResponse _fraudCheckAwayResponse;
-    private Mock<ISaveOrderFraudCheckDetailsCommand> _command;
     private SaveOrderFraudCheckDetailsCommandAdapter _saveOrderFraudCheckDetailsCommandAdapter;
-    private Guid _customerGuid = Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54");
+    private SimpleFraudCheckTestAdapter _simpleFraudCheckTestAdapter;
+
 
     [BddfyFact]
-    public void RequestSentToFraudAwayCorrectly()
+    public void  RequestSentToSimpleFraudCorrectly()
     {
         this.Given(s => s.A_Customer_Order())
-            .When(s => s.The_Fraud_Check_Is_Requested("ABC123"))
-            .Then(s => s.The_Details_Of_The_Customer_Order_Are_Sent_To_FraudAway_Correctly())
+            .And(s=> s.Fraud_Away_Returns_Response(0, 500))
+            .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
+            .Then(s => s.The_Details_Of_The_Customer_Order_Are_Sent_To_SimpleFraud_Correctly())
             .BDDfy();
     }
 
-    [BddfyFact]
-    public void ReturnPassedResultFromFraudAway()
-    {
-        int riskScoreThreshold = 0;
-        int riskScore = 0;
+    
+    // [BddfyFact]
+    // public void ReturnPassedResultFromFraudAway()
+    // {
+    //     int riskScoreThreshold = 0;
+    //     int riskScore = 0;
+    //
+    //     this.Given(s => s.A_Customer_Order())
+    //         .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
+    //         .And(s => s.Fraud_Away_Returns_Response(riskScore, TODO))
+    //         .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
+    //         .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Passed))
+    //         .And(s => s.CustomerGuid_Is_Returned())
+    //         .And(s => s.Order_Id_Is_Returned())
+    //         .And(s => s.Order_Amount_Is_Returned())
+    //         .And(s => s.Details_Of_The_FraudAwayResponse_Are_Saved_To_The_Database(riskScore))
+    //         .And(s => s.Details_Of_The_Order_Are_Saved_To_The_Database())
+    //         .WithExamples(new ExampleTable("riskScoreThreshold", "riskScore")
+    //         {
+    //             { 2,  1},
+    //             { 10, 9.99999},
+    //             {100, 99.99}
+    //         }).BDDfy();
+    // }
 
-        _customerGuid = Guid.NewGuid();
-        this.Given(s => s.A_Customer_Order())
-            .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
-            .And(s => s.Fraud_Away_Returns_Response(riskScore))
-            .When(s => s.The_Fraud_Check_Is_Requested("ABC123"))
-            .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Passed))
-            .And(s => s.CustomerGuid_Is_Returned())
-            .And(s => s.Order_Id_Is_Returned())
-            .And(s => s.Order_Amount_Is_Returned())
-            .And(s => s.Details_Of_The_FraudAwayResponse_Are_Saved_To_The_Database(riskScore))
-            .And(s => s.Details_Of_The_Order_Are_Saved_To_The_Database())
-            .WithExamples(new ExampleTable("riskScoreThreshold", "riskScore")
-            {
-                { 2, 1 },
-                { 10, 9.99999 },
-                { 100, 99.99 }
-            }).BDDfy();
-    }
+    // [BddfyFact]
+    // public void ReturnFailedResultFromFraudAway()
+    // {
+    //     decimal riskScoreThreshold = 0;
+    //     decimal riskScore = 0;
+    //
+    //     _customerGuid = Guid.NewGuid();
+    //     this.Given(s => s.A_Customer_Order())
+    //         .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
+    //         .And(s => s.Fraud_Away_Returns_Response(riskScore, TODO))
+    //         .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
+    //         .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Failed))
+    //         .And(s => s.CustomerGuid_Is_Returned())
+    //         .And(s => s.Order_Id_Is_Returned())
+    //         .And(s => s.Order_Amount_Is_Returned())
+    //         .And(s => s.Details_Of_The_FraudAwayResponse_Are_Saved_To_The_Database(riskScore))
+    //         .And(s => s.Details_Of_The_Order_Are_Saved_To_The_Database())
+    //         .WithExamples(new ExampleTable("riskScoreThreshold", "riskScore")
+    //         {
+    //             { 0.01,  0.02},
+    //             { 99.99, 100}
+    //         }).BDDfy();
+    // }
 
-    [BddfyFact]
-    public void ReturnFailedResultFromFraudAway()
-    {
-        decimal riskScoreThreshold = 0;
-        decimal riskScore = 0;
-
-        this.Given(s => s.A_Customer_Order())
-            .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
-            .And(s => s.Fraud_Away_Returns_Response(riskScore))
-            .When(s => s.The_Fraud_Check_Is_Requested("ABC123"))
-            .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Failed))
-            .And(s => s.CustomerGuid_Is_Returned())
-            .And(s => s.Order_Id_Is_Returned())
-            .And(s => s.Order_Amount_Is_Returned())
-            .And(s => s.Details_Of_The_FraudAwayResponse_Are_Saved_To_The_Database(riskScore))
-            .And(s => s.Details_Of_The_Order_Are_Saved_To_The_Database())
-            .WithExamples(new ExampleTable("riskScoreThreshold", "riskScore")
-            {
-                { 0.01, 0.02 },
-                { 99.99, 100 }
-            }).BDDfy();
-    }
 
 
     public void The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus expectedStatus)
     {
         Assert.Equal(expectedStatus, _result.FraudCheckStatus);
     }
-
-
-    // Return Failed Result from FraudAway
-
-    //     Given a customer order
-    //     And the configured maximum acceptable risk score is <RiskScoreThreshold>
-    // When the order fraud check is requested
-    //     And FraudAway returns a 200 response
-    //     And FraudAway response has a FraudRiskScore of <FraudRiskScore>
-    // Then the FraudCheckStatus in the response returned from the service is “Failed”
-    // And the provided CustomerGuid is returned in the response
-    // And the provided OrderId is returned in the response
-    // And the provided OrderAmount is returned in the response
-    // And the details of the customer order and FraudAway response is saved in the database
-    //
-    // Examples
-    //     RiskScoreThreshold	FraudRiskScore
-    // 0.01	0.02
-    // 99.99	100
-
 
     private void Details_Of_The_Order_Are_Saved_To_The_Database()
     {
@@ -126,7 +110,7 @@ public class FraudAwayTests
 
     private void Order_Id_Is_Returned()
     {
-        Assert.Equal("ABC123", _result.OrderId);
+       Assert.Equal("ABC123", _result.OrderId);
     }
 
     private void CustomerGuid_Is_Returned()
@@ -134,11 +118,11 @@ public class FraudAwayTests
         Assert.Equal(_customerGuid, _result.CustomerGuid);
     }
 
-    private void Fraud_Away_Returns_Response(decimal fraudRiskScore)
+    private void Fraud_Away_Returns_Response(decimal fraudRiskScore, int response)
     {
         _fraudCheckAwayResponse = new FraudCheckAwayResponse
         {
-            ResponseCode = 200,
+            ResponseCode = response,
             FraudRiskScore = fraudRiskScore
         };
     }
@@ -150,9 +134,9 @@ public class FraudAwayTests
 
     private void A_Customer_Order()
     {
-        _customerOrder = _customerOrder = new CustomerOrder
+        _customerOrder = new CustomerOrder
         {
-            CustomerGuid = _customerGuid,
+            CustomerGuid = Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54"),
             OrderAmount = 1500.55M,
             CustomerAddress = new Address
             {
@@ -166,19 +150,26 @@ public class FraudAwayTests
         };
     }
 
-    private void The_Fraud_Check_Is_Requested(string orderId)
+    private void The_Order_Fraud_Check_Is_Requested(string orderId)
     {
         _fraudCheckAway = new Mock<IFraudCheckAway>();
-        _command = new Mock<ISaveOrderFraudCheckDetailsCommand>();
         _fraudCheckAway.Setup(away => away.Check(It.IsAny<FraudAwayCheck>())).Returns(_fraudCheckAwayResponse);
+        _simpleFraudCheckTestAdapter = new SimpleFraudCheckTestAdapter(200);
         _saveOrderFraudCheckDetailsCommandAdapter = new SaveOrderFraudCheckDetailsCommandAdapter();
-        _orderFraudCheck = new MotorwayPaymentsCodeTest.OrderFraudCheck(_fraudCheckAway.Object, Mock.Of<ISimpleFraudCheck>(), _saveOrderFraudCheckDetailsCommandAdapter, _riskScoreThreshold);
+        _orderFraudCheck = new MotorwayPaymentsCodeTest.OrderFraudCheck(_fraudCheckAway.Object, _simpleFraudCheckTestAdapter, _saveOrderFraudCheckDetailsCommandAdapter, _riskScoreThreshold);
         _result = _orderFraudCheck.Check(orderId, _customerOrder);
     }
 
     private void The_Details_Of_The_Customer_Order_Are_Sent_To_FraudAway_Correctly()
     {
         _fraudCheckAway.Verify(away => away.Check(It.Is<FraudAwayCheck>(check => AssertFraudCheckAwayRequest(check))));
+    }
+
+    private void The_Details_Of_The_Customer_Order_Are_Sent_To_SimpleFraud_Correctly()
+    {
+        Assert.Equal("John Doe", _simpleFraudCheckTestAdapter.SimpleFraudCheckDetails.Name);
+        Assert.Equal("10 High Street", _simpleFraudCheckTestAdapter.SimpleFraudCheckDetails.AddressLine1);
+        Assert.Equal("W1T 3HE", _simpleFraudCheckTestAdapter.SimpleFraudCheckDetails.PostCode);
     }
 
     private bool AssertFraudCheckAwayRequest(FraudAwayCheck check)

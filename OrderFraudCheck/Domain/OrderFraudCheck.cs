@@ -6,21 +6,24 @@ namespace MotorwayPaymentsCodeTest;
 public class OrderFraudCheck
 {
     private readonly IFraudCheckAway _fraudCheckAway;
-    private readonly ISaveFraudCheckDetailsCommand _command;
+    private readonly ISimpleFraudCheck _simpleFraudCheck;
+    private readonly ISaveOrderFraudCheckDetailsCommand _saveOrderOrderFraudCheckDetailsCommand;
     private readonly decimal _riskScoreThreshold;
 
-    public OrderFraudCheck(IFraudCheckAway fraudCheckAway, ISaveFraudCheckDetailsCommand command, decimal riskScoreThreshold)
+    public OrderFraudCheck(IFraudCheckAway fraudCheckAway, ISimpleFraudCheck simpleFraudCheck,
+        ISaveOrderFraudCheckDetailsCommand command, decimal riskScoreThreshold)
     {
         _fraudCheckAway = fraudCheckAway ?? throw new ArgumentNullException(nameof(fraudCheckAway));
-        _command = command ?? throw new ArgumentNullException(nameof(command));
+        _simpleFraudCheck = simpleFraudCheck ?? throw new ArgumentNullException(nameof(simpleFraudCheck));
+        _saveOrderOrderFraudCheckDetailsCommand = command ?? throw new ArgumentNullException(nameof(command));
         _riskScoreThreshold = riskScoreThreshold;
     }
 
     public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
     {
-        var response = _fraudCheckAway.Check(new FraudAwayCheck
+        var fraudCheckAwayResponse = _fraudCheckAway.Check(new FraudAwayCheck
         {
-            PersonFullName = $"{customerOrder.CustomerAddress.FirstName} {customerOrder.CustomerAddress.LastName}",
+            PersonFullName = FullName(customerOrder),
             PersonAddress = new PersonAddress
             {
                 AddressLine1 = customerOrder.CustomerAddress.Line1,
@@ -30,14 +33,24 @@ public class OrderFraudCheck
             }
         });
 
+        if (fraudCheckAwayResponse.ResponseCode != 200)
+        {
+            var simpleFraudCheckResponse = _simpleFraudCheck.Check(new SimpleFraudCheck
+            {
+                AddressLine1 = customerOrder.CustomerAddress.Line1,
+                Name = FullName(customerOrder),
+                PostCode = customerOrder.CustomerAddress.PostalCode
+            });
+        }
+
         
         var fraudCheckStatus = FraudCheckStatus.Passed;
-        if (response.FraudRiskScore > _riskScoreThreshold)
+        if (fraudCheckAwayResponse.FraudRiskScore > _riskScoreThreshold)
         {
             fraudCheckStatus = FraudCheckStatus.Failed;
         }
         
-        _command.Execute(response, customerOrder);
+        _saveOrderOrderFraudCheckDetailsCommand.Execute(fraudCheckAwayResponse, customerOrder);
             
         return new FraudCheckResponse
         {
@@ -46,5 +59,10 @@ public class OrderFraudCheck
             OrderId = orderId,
             OrderAmount = customerOrder.OrderAmount,
         };
+    }
+
+    private static string FullName(CustomerOrder customerOrder)
+    {
+        return $"{customerOrder.CustomerAddress.FirstName} {customerOrder.CustomerAddress.LastName}";
     }
 }

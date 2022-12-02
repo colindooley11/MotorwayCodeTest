@@ -4,12 +4,12 @@ using OrderFraudCheckCodeTest.UnitTests;
 
 namespace OrderFraudCheck.UnitTests.TestAdapters;
 
-public class SaveFraudCheckDetailsCommandAdapter : ISaveFraudCheckDetailsCommand
+public class SaveOrderFraudCheckDetailsCommandAdapter : ISaveOrderFraudCheckDetailsCommand
 {
-    public FraudProviderResponse Response { get; set; }
+    public FraudCheckAwayResponse Response { get; set; }
     public CustomerOrder Order { get; set; }
 
-    public void Execute(FraudProviderResponse response, CustomerOrder order)
+    public void Execute(FraudCheckAwayResponse response, CustomerOrder order)
     {
         Response = response;
         Order = order;
