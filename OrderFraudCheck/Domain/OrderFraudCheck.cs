@@ -7,18 +7,18 @@ public class OrderFraudCheck
 {
     private readonly IFraudCheckAway _fraudCheckAway;
     private readonly ISaveFraudCheckDetailsCommand _command;
-    private readonly int _riskScore;
+    private readonly decimal _riskScoreThreshold;
 
-    public OrderFraudCheck(IFraudCheckAway fraudCheckAway, ISaveFraudCheckDetailsCommand command, int riskScore)
+    public OrderFraudCheck(IFraudCheckAway fraudCheckAway, ISaveFraudCheckDetailsCommand command, decimal riskScoreThreshold)
     {
         _fraudCheckAway = fraudCheckAway ?? throw new ArgumentNullException(nameof(fraudCheckAway));
         _command = command ?? throw new ArgumentNullException(nameof(command));
-        _riskScore = riskScore;
+        _riskScoreThreshold = riskScoreThreshold;
     }
 
     public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
     {
-        _ = _fraudCheckAway.Check(new FraudAwayCheck
+        var response = _fraudCheckAway.Check(new FraudAwayCheck
         {
             PersonFullName = $"{customerOrder.CustomerAddress.FirstName} {customerOrder.CustomerAddress.LastName}",
             PersonAddress = new PersonAddress
@@ -30,9 +30,18 @@ public class OrderFraudCheck
             }
         });
 
+        
+        var fraudCheckStatus = FraudCheckStatus.Passed;
+        if (response.FraudRiskScore > _riskScoreThreshold)
+        {
+            fraudCheckStatus = FraudCheckStatus.Failed;
+        }
+        
+        _command.Execute(response, customerOrder);
+            
         return new FraudCheckResponse
         {
-            FraudCheckStatus = FraudCheckStatus.Passed, 
+            FraudCheckStatus = fraudCheckStatus, 
             CustomerGuid  = customerOrder.CustomerGuid,
             OrderId = orderId,
             OrderAmount = customerOrder.OrderAmount,

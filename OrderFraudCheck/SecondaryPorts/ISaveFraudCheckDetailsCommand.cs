@@ -4,5 +4,5 @@ namespace MotorwayPaymentsCodeTest.SecondaryPorts;
 
 public interface ISaveFraudCheckDetailsCommand
 {
-    void Execute(FraudCheckResponse response, CustomerOrder order);
+    void Execute(FraudProviderResponse response, CustomerOrder order);
 }

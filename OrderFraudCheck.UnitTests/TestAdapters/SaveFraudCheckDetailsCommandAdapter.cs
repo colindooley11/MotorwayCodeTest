@@ -6,10 +6,10 @@ namespace OrderFraudCheck.UnitTests.TestAdapters;
 
 public class SaveFraudCheckDetailsCommandAdapter : ISaveFraudCheckDetailsCommand
 {
-    public FraudCheckResponse Response { get; set; }
+    public FraudProviderResponse Response { get; set; }
     public CustomerOrder Order { get; set; }
 
-    public void Execute(FraudCheckResponse response, CustomerOrder order)
+    public void Execute(FraudProviderResponse response, CustomerOrder order)
     {
         Response = response;
         Order = order;

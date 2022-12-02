@@ -1,10 +1,10 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=072f8abe_002D2b69_002D45ca_002D8bd0_002D8d1fcfc12b79/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c714d6cb_002D604d_002D41f0_002Da333_002Dc8c1851290e1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;And&gt;&#xD;
     &lt;TestAncestor&gt;&#xD;
-      &lt;TestId&gt;xUnit::EBACF696-3A9C-4FCA-A972-04AB9FFFC46C::net6.0::OrderFraudCheckCodeTest.UnitTests.FraudAwayTests&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;xUnit::EBACF696-3A9C-4FCA-A972-04AB9FFFC46C::net6.0::OrderFraudCheck.UnitTests.FraudAwayTests&lt;/TestId&gt;&#xD;
     &lt;/TestAncestor&gt;&#xD;
     &lt;Project Location="C:\Users\ColinDooley\RiderProjects\MotorwayPaymentsCodeTest\OrderFraudCheck.UnitTests" Presentation="&amp;lt;OrderFraudCheck.UnitTests&amp;gt;" /&gt;&#xD;
-    &lt;Namespace&gt;OrderFraudCheckCodeTest.UnitTests&lt;/Namespace&gt;&#xD;
+    &lt;Namespace&gt;OrderFraudCheck.UnitTests&lt;/Namespace&gt;&#xD;
   &lt;/And&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
