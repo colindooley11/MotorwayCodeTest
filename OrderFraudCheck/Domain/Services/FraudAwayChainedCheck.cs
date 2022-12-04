@@ -38,6 +38,10 @@ public class FraudAwayChainedCheck : IFraudCheck
 
             _saveOrderOrderFraudCheckDetailsCommand.Execute(fraudCheckAwayResponse, customerOrder);
         }
+        else
+        {
+            fraudCheckStatus = _fraudCheck.Check(orderId, customerOrder).FraudCheckStatus; 
+        }
             
         return new FraudCheckResponseInternal
         {

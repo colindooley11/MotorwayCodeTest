@@ -1,5 +1,6 @@
 using Moq;
 using MotorwayPaymentsCodeTest;
+using MotorwayPaymentsCodeTest.Domain;
 using MotorwayPaymentsCodeTest.Domain.Models;
 using MotorwayPaymentsCodeTest.SecondaryPorts;
 using OrderFraudCheck.UnitTests.TestAdapters;
@@ -155,9 +156,15 @@ public class SimpleFraudTests
         _fraudCheckAway = new Mock<IFraudCheckAway>();
         _fraudCheckAway.Setup(away => away.Check(It.IsAny<FraudAwayCheck>())).Returns(_fraudCheckAwayResponse);
         _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter = new SaveOrderFraudCheckSimpleFraudDetailsCommandAdapter();
-        _orderFraudCheck = new MotorwayPaymentsCodeTest.Domain.OrderFraudCheck(_fraudCheckAway.Object, _simpleFraudCheckTestAdapter, Mock.Of<ISaveOrderFraudCheckDetailsCommand>(), _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter,  _riskScoreThreshold);
-        _result = _orderFraudCheck.Check(orderId, _customerOrder);
-    }
+
+        var simpleFraudCheck = new SimpleFraudChainedCheck(null, _simpleFraudCheckTestAdapter,
+            _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter);
+        
+        var fraudCheck = new FraudAwayChainedCheck(simpleFraudCheck, _fraudCheckAway.Object,
+            Mock.Of<ISaveOrderFraudCheckDetailsCommand>(), _riskScoreThreshold);
+
+        _orderFraudCheck = new MotorwayPaymentsCodeTest.Domain.OrderFraudCheck(fraudCheck);
+        _result = _orderFraudCheck.Check(orderId, _customerOrder); }
 
     private void The_Details_Of_The_Customer_Order_Are_Sent_To_FraudAway_Correctly()
     {
