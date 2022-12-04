@@ -83,26 +83,6 @@ public class FraudAwayTests
         Assert.Equal(expectedStatus, _result.FraudCheckStatus);
     }
 
-
-    // Return Failed Result from FraudAway
-
-    //     Given a customer order
-    //     And the configured maximum acceptable risk score is <RiskScoreThreshold>
-    // When the order fraud check is requested
-    //     And FraudAway returns a 200 response
-    //     And FraudAway response has a FraudRiskScore of <FraudRiskScore>
-    // Then the FraudCheckStatus in the response returned from the service is “Failed”
-    // And the provided CustomerGuid is returned in the response
-    // And the provided OrderId is returned in the response
-    // And the provided OrderAmount is returned in the response
-    // And the details of the customer order and FraudAway response is saved in the database
-    //
-    // Examples
-    //     RiskScoreThreshold	FraudRiskScore
-    // 0.01	0.02
-    // 99.99	100
-
-
     private void Details_Of_The_Order_Are_Saved_To_The_Database()
     {
         Assert.Equal("10 High Street", _saveOrderFraudCheckAwayDetailsCommandAdapter.Order.CustomerAddress.Line1);
