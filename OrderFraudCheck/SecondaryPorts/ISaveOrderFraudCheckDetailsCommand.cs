@@ -1,4 +1,4 @@
-using OrderFraudCheckCodeTest.UnitTests;
+using MotorwayPaymentsCodeTest.Domain.Models;
 
 namespace MotorwayPaymentsCodeTest.SecondaryPorts;
 

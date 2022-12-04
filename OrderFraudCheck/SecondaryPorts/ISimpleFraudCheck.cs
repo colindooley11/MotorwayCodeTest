@@ -1,6 +1,6 @@
-using OrderFraudCheck.UnitTests.TestAdapters;
+using MotorwayPaymentsCodeTest.Domain.Models;
 
-namespace MotorwayPaymentsCodeTest;
+namespace MotorwayPaymentsCodeTest.SecondaryPorts;
 
 public interface ISimpleFraudCheck
 {

@@ -1,4 +1,4 @@
-namespace OrderFraudCheck.UnitTests.TestAdapters;
+namespace MotorwayPaymentsCodeTest.Domain.Models;
 
 public class SimpleFraudCheckResponse
 {

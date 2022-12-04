@@ -1,8 +1,8 @@
 using Moq;
 using MotorwayPaymentsCodeTest;
+using MotorwayPaymentsCodeTest.Domain.Models;
 using MotorwayPaymentsCodeTest.SecondaryPorts;
 using OrderFraudCheck.UnitTests.TestAdapters;
-using OrderFraudCheckCodeTest.UnitTests;
 using TestStack.BDDfy;
 using TestStack.BDDfy.Xunit;
 
@@ -13,11 +13,11 @@ public class FraudAwayTests
     private CustomerOrder _customerOrder;
     private Mock<IFraudCheckAway> _fraudCheckAway;
     private FraudCheckResponse _result;
-    private MotorwayPaymentsCodeTest.OrderFraudCheck _orderFraudCheck;
+    private MotorwayPaymentsCodeTest.Domain.OrderFraudCheck _orderFraudCheck;
     private decimal _riskScoreThreshold;
     private FraudCheckAwayResponse _fraudCheckAwayResponse;
     private Mock<ISaveOrderFraudCheckDetailsCommand> _command;
-    private SaveOrderFraudCheckDetailsCommandAdapter _saveOrderFraudCheckDetailsCommandAdapter;
+    private SaveOrderFraudCheckAwayDetailsCommandAdapter _saveOrderFraudCheckAwayDetailsCommandAdapter;
     private Guid _customerGuid = Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54");
 
     [BddfyFact]
@@ -32,13 +32,13 @@ public class FraudAwayTests
     [BddfyFact]
     public void ReturnPassedResultFromFraudAway()
     {
-        int riskScoreThreshold = 0;
-        int riskScore = 0;
+        decimal riskScoreThreshold = 0;
+        decimal riskScore = 0;
 
         _customerGuid = Guid.NewGuid();
         this.Given(s => s.A_Customer_Order())
             .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
-            .And(s => s.Fraud_Away_Returns_Response(riskScore))
+            .And(s => s.Fraud_Away_Returns_Response(riskScore, 200))
             .When(s => s.The_Fraud_Check_Is_Requested("ABC123"))
             .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Passed))
             .And(s => s.CustomerGuid_Is_Returned())
@@ -62,7 +62,7 @@ public class FraudAwayTests
 
         this.Given(s => s.A_Customer_Order())
             .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
-            .And(s => s.Fraud_Away_Returns_Response(riskScore))
+            .And(s => s.Fraud_Away_Returns_Response(riskScore, 200))
             .When(s => s.The_Fraud_Check_Is_Requested("ABC123"))
             .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Failed))
             .And(s => s.CustomerGuid_Is_Returned())
@@ -105,18 +105,18 @@ public class FraudAwayTests
 
     private void Details_Of_The_Order_Are_Saved_To_The_Database()
     {
-        Assert.Equal("10 High Street", _saveOrderFraudCheckDetailsCommandAdapter.Order.CustomerAddress.Line1);
-        Assert.Equal("John", _saveOrderFraudCheckDetailsCommandAdapter.Order.CustomerAddress.FirstName);
-        Assert.Equal("Doe", _saveOrderFraudCheckDetailsCommandAdapter.Order.CustomerAddress.LastName);
-        Assert.Equal("London", _saveOrderFraudCheckDetailsCommandAdapter.Order.CustomerAddress.City);
-        Assert.Equal("Greater London", _saveOrderFraudCheckDetailsCommandAdapter.Order.CustomerAddress.Region);
-        Assert.Equal("W1T 3HE", _saveOrderFraudCheckDetailsCommandAdapter.Order.CustomerAddress.PostalCode);
+        Assert.Equal("10 High Street", _saveOrderFraudCheckAwayDetailsCommandAdapter.Order.CustomerAddress.Line1);
+        Assert.Equal("John", _saveOrderFraudCheckAwayDetailsCommandAdapter.Order.CustomerAddress.FirstName);
+        Assert.Equal("Doe", _saveOrderFraudCheckAwayDetailsCommandAdapter.Order.CustomerAddress.LastName);
+        Assert.Equal("London", _saveOrderFraudCheckAwayDetailsCommandAdapter.Order.CustomerAddress.City);
+        Assert.Equal("Greater London", _saveOrderFraudCheckAwayDetailsCommandAdapter.Order.CustomerAddress.Region);
+        Assert.Equal("W1T 3HE", _saveOrderFraudCheckAwayDetailsCommandAdapter.Order.CustomerAddress.PostalCode);
     }
 
     private void Details_Of_The_FraudAwayResponse_Are_Saved_To_The_Database(decimal fraudRiskScore)
     {
-        Assert.Equal(200, _saveOrderFraudCheckDetailsCommandAdapter.Response.ResponseCode);
-        Assert.Equal(fraudRiskScore, _saveOrderFraudCheckDetailsCommandAdapter.Response.FraudRiskScore);
+        Assert.Equal(200, _saveOrderFraudCheckAwayDetailsCommandAdapter.Response.ResponseCode);
+        Assert.Equal(fraudRiskScore, _saveOrderFraudCheckAwayDetailsCommandAdapter.Response.FraudRiskScore);
     }
 
     private void Order_Amount_Is_Returned()
@@ -134,11 +134,11 @@ public class FraudAwayTests
         Assert.Equal(_customerGuid, _result.CustomerGuid);
     }
 
-    private void Fraud_Away_Returns_Response(decimal fraudRiskScore)
+    private void Fraud_Away_Returns_Response(decimal fraudRiskScore, int responseCode)
     {
         _fraudCheckAwayResponse = new FraudCheckAwayResponse
         {
-            ResponseCode = 200,
+            ResponseCode = responseCode,
             FraudRiskScore = fraudRiskScore
         };
     }
@@ -170,9 +170,11 @@ public class FraudAwayTests
     {
         _fraudCheckAway = new Mock<IFraudCheckAway>();
         _command = new Mock<ISaveOrderFraudCheckDetailsCommand>();
+        _riskScoreThreshold = _riskScoreThreshold == 0 ? 100 : _riskScoreThreshold;
+        _fraudCheckAwayResponse = _fraudCheckAwayResponse ?? new FraudCheckAwayResponse { ResponseCode = 200, FraudRiskScore = 1};
         _fraudCheckAway.Setup(away => away.Check(It.IsAny<FraudAwayCheck>())).Returns(_fraudCheckAwayResponse);
-        _saveOrderFraudCheckDetailsCommandAdapter = new SaveOrderFraudCheckDetailsCommandAdapter();
-        _orderFraudCheck = new MotorwayPaymentsCodeTest.OrderFraudCheck(_fraudCheckAway.Object, Mock.Of<ISimpleFraudCheck>(), _saveOrderFraudCheckDetailsCommandAdapter, _riskScoreThreshold);
+        _saveOrderFraudCheckAwayDetailsCommandAdapter = new SaveOrderFraudCheckAwayDetailsCommandAdapter();
+        _orderFraudCheck = new MotorwayPaymentsCodeTest.Domain.OrderFraudCheck(_fraudCheckAway.Object, Mock.Of<ISimpleFraudCheck>(), _saveOrderFraudCheckAwayDetailsCommandAdapter, Mock.Of<ISaveOrderFraudCheckSimpleFraudDetailsCommand>(), _riskScoreThreshold);
         _result = _orderFraudCheck.Check(orderId, _customerOrder);
     }
 

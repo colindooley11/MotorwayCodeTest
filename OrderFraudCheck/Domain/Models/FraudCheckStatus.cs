@@ -1,4 +1,4 @@
-namespace MotorwayPaymentsCodeTest;
+namespace MotorwayPaymentsCodeTest.Domain.Models;
 
 public enum FraudCheckStatus
 {

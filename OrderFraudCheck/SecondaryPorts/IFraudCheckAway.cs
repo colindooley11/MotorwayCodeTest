@@ -1,4 +1,6 @@
-namespace MotorwayPaymentsCodeTest;
+using MotorwayPaymentsCodeTest.Domain.Models;
+
+namespace MotorwayPaymentsCodeTest.SecondaryPorts;
 
 public interface IFraudCheckAway
 {

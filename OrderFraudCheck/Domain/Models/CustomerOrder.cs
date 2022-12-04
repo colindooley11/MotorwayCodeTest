@@ -1,4 +1,4 @@
-namespace OrderFraudCheckCodeTest.UnitTests;
+namespace MotorwayPaymentsCodeTest.Domain.Models;
 
 public class CustomerOrder
 {
