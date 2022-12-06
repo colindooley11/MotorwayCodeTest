@@ -18,6 +18,7 @@ public class SimpleFraudProviderTestAdapter : ISimpleFraudProvider
     {
         SimpleFraudDetails = simpleFraudDetails;
         return new SimpleFraudResult { Result = _result, ResponseCode = _responseCode };
+      
     }
 
     public SimpleFraudDetails SimpleFraudDetails { get; set; }

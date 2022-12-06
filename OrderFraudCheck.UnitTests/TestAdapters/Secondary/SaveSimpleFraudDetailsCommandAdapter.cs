@@ -7,10 +7,12 @@ public class SaveSimpleFraudDetailsCommandAdapter : ISaveSimpleFraudDetailsComma
 {
     public SimpleFraudResult Response { get; set; }
     public CustomerOrder Order { get; set; }
-
+    public int TimesCalled { get; set; }
+    
     public void Execute(SimpleFraudResult response, CustomerOrder order)
     {
         Response = response;
         Order = order;
+        TimesCalled++;
     }
 }

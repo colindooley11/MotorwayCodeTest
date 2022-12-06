@@ -9,13 +9,13 @@ public class SaveFraudAwayDetailsCommandTestAdapter : ISaveFraudAwayDetailsComma
     {
     }
     
-    public FraudAwayResult Result { get; set; }
+    public FraudAwayResult Response { get; set; }
     public CustomerOrder Order { get; set; }
     public FraudCheckStatus Status { get; set; }
 
     public void Execute(FraudAwayResult result, CustomerOrder order, FraudCheckStatus status)
     {
-        Result = result;
+        Response = result;
         Order = order;
         Status = status;
     }

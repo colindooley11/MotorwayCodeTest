@@ -6,16 +6,16 @@ namespace MotorwayPaymentsCodeTest.Domain.Services;
 public class IdempotentFraudCheckService : IFraudCheckService
 {
     private readonly IFraudCheckService _nextFraudCheckService;
-    private readonly IGetOrderFraudCheckQuery _query;
+    private readonly IGetOrderFraudCheckQuery _getOrderFraudCheckQuery;
 
-    public IdempotentFraudCheckService(IFraudCheckService nextFraudCheckService, IGetOrderFraudCheckQuery query)
+    public IdempotentFraudCheckService(IFraudCheckService nextFraudCheckService, IGetOrderFraudCheckQuery getOrderFraudCheckQuery)
     {
         _nextFraudCheckService = nextFraudCheckService;
-        _query = query;
+        _getOrderFraudCheckQuery = getOrderFraudCheckQuery;
     }
     public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
     {
-       var orderFraudCheckDetails =  _query.Execute(orderId);
+       var orderFraudCheckDetails =  _getOrderFraudCheckQuery.Execute(orderId);
        if (orderFraudCheckDetails != null)
        {
            return new FraudCheckResponse
