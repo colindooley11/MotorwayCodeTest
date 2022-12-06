@@ -1,7 +1,7 @@
 namespace MotorwayPaymentsCodeTest.Domain.Models;
 
-public class SimpleFraudCheckResponse
+public class FraudAwayResult
 {
     public int ResponseCode { get; set; }
-    public string Result { get; set; }
+    public decimal FraudRiskScore { get; set; }
 }

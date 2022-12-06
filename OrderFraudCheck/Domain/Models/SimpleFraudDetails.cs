@@ -1,6 +1,6 @@
 namespace MotorwayPaymentsCodeTest.Domain.Models;
 
-public class SimpleFraudCheck
+public class SimpleFraudDetails
 {
     public string Name { get; set; }
     

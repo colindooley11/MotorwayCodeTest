@@ -2,7 +2,7 @@ using MotorwayPaymentsCodeTest.Domain.Models;
 
 namespace MotorwayPaymentsCodeTest.SecondaryPorts;
 
-public interface IFraudCheckAway
+public interface IGetOrderFraudCheckQuery
 {
-    public FraudCheckAwayResponse Check(FraudAwayCheck fraudAwayCheck);
+    OrderFraudCheckDetails Execute(string orderId);
 }

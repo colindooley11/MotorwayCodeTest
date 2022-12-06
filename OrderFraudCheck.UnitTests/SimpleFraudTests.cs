@@ -1,9 +1,9 @@
 using Moq;
-using MotorwayPaymentsCodeTest;
-using MotorwayPaymentsCodeTest.Domain;
 using MotorwayPaymentsCodeTest.Domain.Models;
+using MotorwayPaymentsCodeTest.Domain.Services;
 using MotorwayPaymentsCodeTest.SecondaryPorts;
-using OrderFraudCheck.UnitTests.TestAdapters;
+using OrderFraudCheck.UnitTests.TestAdapters.Primary;
+using OrderFraudCheck.UnitTests.TestAdapters.Secondary;
 using TestStack.BDDfy;
 using TestStack.BDDfy.Xunit;
 
@@ -12,14 +12,14 @@ namespace OrderFraudCheck.UnitTests;
 public class SimpleFraudTests
 {
     private CustomerOrder _customerOrder;
-    private Mock<IFraudCheckAway> _fraudCheckAway;
+    private Mock<IFraudAwayProvider> _fraudCheckAway;
     private FraudCheckResponse _result;
     private MotorwayPaymentsCodeTest.Domain.OrderFraudCheck _orderFraudCheck;
     private decimal _riskScoreThreshold;
-    private Guid _customerGuid = Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54");
-    private FraudCheckAwayResponse _fraudCheckAwayResponse;
-    private SaveOrderFraudCheckSimpleFraudDetailsCommandAdapter _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter;
-    private SimpleFraudCheckTestAdapter _simpleFraudCheckTestAdapter;
+    private readonly Guid _customerGuid = Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54");
+    private FraudAwayResult _fraudAwayResult;
+    private SaveSimpleFraudDetailsCommandAdapter _saveSimpleFraudDetailsCommandAdapter;
+    private SimpleFraudProviderTestAdapter _simpleFraudProviderTestAdapter;
 
 
     [BddfyTheory]
@@ -78,7 +78,7 @@ public class SimpleFraudTests
 
      public void Simple_Fraud_Returns_Response(string result, int responseCode)
      {
-         _simpleFraudCheckTestAdapter = new SimpleFraudCheckTestAdapter(result, responseCode);
+         _simpleFraudProviderTestAdapter = new SimpleFraudProviderTestAdapter(result, responseCode);
      }
      
  
@@ -89,18 +89,18 @@ public class SimpleFraudTests
 
     private void Details_Of_The_Order_Are_Saved_To_The_Database()
     {
-        Assert.Equal("10 High Street", _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.Line1);
-        Assert.Equal("John", _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.FirstName);
-        Assert.Equal("Doe", _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.LastName);
-        Assert.Equal("London", _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.City);
-        Assert.Equal("Greater London", _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.Region);
-        Assert.Equal("W1T 3HE", _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.PostalCode);
+        Assert.Equal("10 High Street", _saveSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.Line1);
+        Assert.Equal("John", _saveSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.FirstName);
+        Assert.Equal("Doe", _saveSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.LastName);
+        Assert.Equal("London", _saveSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.City);
+        Assert.Equal("Greater London", _saveSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.Region);
+        Assert.Equal("W1T 3HE", _saveSimpleFraudDetailsCommandAdapter.Order.CustomerAddress.PostalCode);
     }
 
     private void Details_Of_The_SimpleFraudResponse_Are_Saved_To_The_Database(string expectedResult)
     {
-        Assert.Equal(200, _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter.Response.ResponseCode);
-        Assert.Equal(expectedResult, _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter.Response.Result);
+        Assert.Equal(200, _saveSimpleFraudDetailsCommandAdapter.Response.ResponseCode);
+        Assert.Equal(expectedResult, _saveSimpleFraudDetailsCommandAdapter.Response.Result);
     }
 
     private void Order_Amount_Is_Returned()
@@ -120,7 +120,7 @@ public class SimpleFraudTests
 
     private void Fraud_Away_Returns_Response(decimal fraudRiskScore, int response)
     {
-        _fraudCheckAwayResponse = new FraudCheckAwayResponse
+        _fraudAwayResult = new FraudAwayResult
         {
             ResponseCode = response,
             FraudRiskScore = fraudRiskScore
@@ -152,39 +152,24 @@ public class SimpleFraudTests
 
     private void The_Order_Fraud_Check_Is_Requested(string orderId)
     {
-        _simpleFraudCheckTestAdapter ??= new SimpleFraudCheckTestAdapter("Passed", 200);
-        _fraudCheckAway = new Mock<IFraudCheckAway>();
-        _fraudCheckAway.Setup(away => away.Check(It.IsAny<FraudAwayCheck>())).Returns(_fraudCheckAwayResponse);
-        _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter = new SaveOrderFraudCheckSimpleFraudDetailsCommandAdapter();
+        _simpleFraudProviderTestAdapter ??= new SimpleFraudProviderTestAdapter("Passed", 200);
+        _fraudCheckAway = new Mock<IFraudAwayProvider>();
+        _fraudCheckAway.Setup(away => away.Check(It.IsAny<MotorwayPaymentsCodeTest.Domain.Models.FraudAwayDetails>())).Returns(_fraudAwayResult);
+        _saveSimpleFraudDetailsCommandAdapter = new SaveSimpleFraudDetailsCommandAdapter();
 
-        var simpleFraudCheck = new SimpleFraudChainedCheck(null, _simpleFraudCheckTestAdapter,
-            _saveOrderFraudCheckSimpleFraudDetailsCommandAdapter);
+        var simpleFraudCheck = new SimpleFraudFraudCheckService(null, _simpleFraudProviderTestAdapter,
+            _saveSimpleFraudDetailsCommandAdapter);
         
-        var fraudCheck = new FraudAwayChainedCheck(simpleFraudCheck, _fraudCheckAway.Object,
-            Mock.Of<ISaveOrderFraudCheckDetailsCommand>(), _riskScoreThreshold);
+        var fraudCheck = new FraudAwayFraudCheckService(simpleFraudCheck, _fraudCheckAway.Object,
+            Mock.Of<ISaveFraudAwayDetailsCommand>(), _riskScoreThreshold);
 
         _orderFraudCheck = new MotorwayPaymentsCodeTest.Domain.OrderFraudCheck(fraudCheck);
         _result = _orderFraudCheck.Check(orderId, _customerOrder); }
 
-    private void The_Details_Of_The_Customer_Order_Are_Sent_To_FraudAway_Correctly()
-    {
-        _fraudCheckAway.Verify(away => away.Check(It.Is<FraudAwayCheck>(check => AssertFraudCheckAwayRequest(check))));
-    }
-
     private void The_Details_Of_The_Customer_Order_Are_Sent_To_SimpleFraud_Correctly()
     {
-        Assert.Equal("John Doe", _simpleFraudCheckTestAdapter.SimpleFraudCheckDetails.Name);
-        Assert.Equal("10 High Street", _simpleFraudCheckTestAdapter.SimpleFraudCheckDetails.AddressLine1);
-        Assert.Equal("W1T 3HE", _simpleFraudCheckTestAdapter.SimpleFraudCheckDetails.PostCode);
-    }
-
-    private bool AssertFraudCheckAwayRequest(FraudAwayCheck check)
-    {
-        Assert.Equal(check.PersonFullName, "John Doe");
-        Assert.Equal(check.PersonAddress.AddressLine1, "10 High Street");
-        Assert.Equal(check.PersonAddress.Town, "London");
-        Assert.Equal(check.PersonAddress.County, "Greater London");
-        Assert.Equal(check.PersonAddress.PostCode, "W1T 3HE");
-        return true;
+        Assert.Equal("John Doe", _simpleFraudProviderTestAdapter.SimpleFraudDetails.Name);
+        Assert.Equal("10 High Street", _simpleFraudProviderTestAdapter.SimpleFraudDetails.AddressLine1);
+        Assert.Equal("W1T 3HE", _simpleFraudProviderTestAdapter.SimpleFraudDetails.PostCode);
     }
 }

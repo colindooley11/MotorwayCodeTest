@@ -1,4 +1,5 @@
 using MotorwayPaymentsCodeTest.Domain.Models;
+using MotorwayPaymentsCodeTest.Domain.Services;
 using MotorwayPaymentsCodeTest.PrimaryPorts;
 using MotorwayPaymentsCodeTest.SecondaryPorts;
 
@@ -6,23 +7,16 @@ namespace MotorwayPaymentsCodeTest.Domain;
 
 public class OrderFraudCheck : IOrderFraudCheck
 {
-    private readonly IFraudCheck _fraudCheck;
+    private readonly IFraudCheckService _fraudCheckService;
+    private readonly IGetOrderFraudCheckQuery _getOrderFraudCheckQuery;
 
-    public OrderFraudCheck(IFraudCheck fraudCheck)
+    public OrderFraudCheck(IFraudCheckService fraudCheckService)
     {
-        _fraudCheck = fraudCheck ?? throw new ArgumentNullException(nameof(fraudCheck));
+        _fraudCheckService = fraudCheckService ?? throw new ArgumentNullException(nameof(fraudCheckService));
     }
 
     public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
     {
-        var fraudCheckStatus = _fraudCheck.Check(orderId, customerOrder).FraudCheckStatus;
-
-        return new FraudCheckResponse
-        {
-            FraudCheckStatus = fraudCheckStatus,
-            CustomerGuid = customerOrder.CustomerGuid,
-            OrderId = orderId,
-            OrderAmount = customerOrder.OrderAmount,
-        };
+        return _fraudCheckService.Check(orderId, customerOrder);
     }
 }

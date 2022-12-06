@@ -1,32 +1,22 @@
-using MotorwayPaymentsCodeTest;
 using MotorwayPaymentsCodeTest.Domain.Models;
-using MotorwayPaymentsCodeTest.PrimaryPorts;
 using MotorwayPaymentsCodeTest.SecondaryPorts;
 
-namespace OrderFraudCheck.UnitTests.TestAdapters;
+namespace OrderFraudCheck.UnitTests.TestAdapters.Secondary;
 
-public class SaveOrderFraudCheckAwayDetailsCommandAdapter : ISaveOrderFraudCheckDetailsCommand
+public class SaveFraudAwayDetailsCommandTestAdapter : ISaveFraudAwayDetailsCommand
 {
-    public FraudCheckAwayResponse Response { get; set; }
+    public SaveFraudAwayDetailsCommandTestAdapter()
+    {
+    }
+    
+    public FraudAwayResult Result { get; set; }
     public CustomerOrder Order { get; set; }
+    public FraudCheckStatus Status { get; set; }
 
-    public void Execute(FraudCheckAwayResponse response, CustomerOrder order)
+    public void Execute(FraudAwayResult result, CustomerOrder order, FraudCheckStatus status)
     {
-        Response = response;
+        Result = result;
         Order = order;
-    }
-}
-
-public class OrderFraudCheckTestAdapter : IOrderFraudCheck
-{
-    private readonly MotorwayPaymentsCodeTest.Domain.OrderFraudCheck _fraudCheck;
-
-    public OrderFraudCheckTestAdapter(MotorwayPaymentsCodeTest.Domain.OrderFraudCheck fraudCheck)
-    {
-        _fraudCheck = fraudCheck;
-    }
-    public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
-    {
-       return _fraudCheck.Check(orderId, customerOrder);
+        Status = status;
     }
 }
