@@ -43,7 +43,7 @@ public class OrderFraudCheckQuery : IOrderFraudCheckQuery
             };
         }
         
-        return null;
+        throw new MissingOrderFraudCheckException($"The Order Fraud Check for Order Id: {orderId} can not be found");
 
     }
     
