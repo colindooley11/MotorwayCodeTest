@@ -13,12 +13,11 @@ public class IdempotentRemoteFraudCheckService : IFraudCheckService
         _nextFraudCheckService = nextFraudCheckService;
         _getOrderFraudCheckQuery = getOrderFraudCheckQuery;
     }
-    public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
+    public async Task<FraudCheckResponse> Check(string orderId, CustomerOrder customerOrder)
     {
-       var orderFraudCheckDetails =  _getOrderFraudCheckQuery.Execute(orderId);
+       var orderFraudCheckDetails =  await _getOrderFraudCheckQuery.Execute(orderId);
        if (orderFraudCheckDetails != null)
        {
-         
            if (SavedDefaultBypassedFraudCheck(orderFraudCheckDetails))
            {
                var fraudCheckStatus =
@@ -44,7 +43,7 @@ public class IdempotentRemoteFraudCheckService : IFraudCheckService
            };
        }
 
-       return _nextFraudCheckService.Check(orderId, customerOrder);
+       return await _nextFraudCheckService.Check(orderId, customerOrder);
     }
 
     private static bool SavedDefaultBypassedFraudCheck(OrderFraudCheckDetails orderFraudCheckDetails)

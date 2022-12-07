@@ -11,8 +11,8 @@ public class OrderFraudCheckTestAdapter : IOrderFraudCheck
     {
         _fraudCheck = fraudCheck;
     }
-    public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
+    public async Task<FraudCheckResponse> Check(string orderId, CustomerOrder customerOrder)
     {
-        return _fraudCheck.Check(orderId, customerOrder);
+        return await _fraudCheck.Check(orderId, customerOrder);
     }
 }

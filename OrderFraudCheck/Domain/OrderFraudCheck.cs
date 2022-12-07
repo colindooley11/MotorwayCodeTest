@@ -15,8 +15,8 @@ public class OrderFraudCheck : IOrderFraudCheck
         _fraudCheckService = fraudCheckService ?? throw new ArgumentNullException(nameof(fraudCheckService));
     }
 
-    public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
+    public async Task<FraudCheckResponse> Check(string orderId, CustomerOrder customerOrder)
     {
-        return _fraudCheckService.Check(orderId, customerOrder);
+        return await _fraudCheckService.Check(orderId, customerOrder);
     }
 }

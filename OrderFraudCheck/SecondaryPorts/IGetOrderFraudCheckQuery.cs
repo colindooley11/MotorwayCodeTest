@@ -4,5 +4,5 @@ namespace MotorwayPaymentsCodeTest.SecondaryPorts;
 
 public interface IGetOrderFraudCheckQuery
 {
-    OrderFraudCheckDetails Execute(string orderId);
+    Task<OrderFraudCheckDetails> Execute(string orderId);
 }

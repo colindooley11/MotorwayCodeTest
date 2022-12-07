@@ -11,8 +11,8 @@ public class GetOrderFraudCheckQueryTestAdapter : IGetOrderFraudCheckQuery
     {
         _orderFraudCheckDetails = orderOrderFraudCheckDetails;
     }
-    public OrderFraudCheckDetails Execute(string orderId)
+    public Task<OrderFraudCheckDetails> Execute(string orderId)
     {
-        return _orderFraudCheckDetails; 
+        return Task.FromResult(_orderFraudCheckDetails); 
     }
 }

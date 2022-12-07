@@ -16,7 +16,7 @@ public class SimpleFraudFraudCheckService : IFraudCheckService
         _simpleFraudProvider = simpleFraudProvider ?? throw new ArgumentNullException(nameof(simpleFraudProvider));
         _saveSimpleFraudDetailsCommand = saveSimpleFraudDetailsCommand ?? throw new ArgumentNullException(nameof(saveSimpleFraudDetailsCommand));
     }
-    public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
+    public async Task<FraudCheckResponse> Check(string orderId, CustomerOrder customerOrder)
     {
         var simpleFraudCheckResponse = _simpleFraudProvider.Check(new SimpleFraudDetails
         {
@@ -29,7 +29,7 @@ public class SimpleFraudFraudCheckService : IFraudCheckService
         {
             var fraudCheckStatus = ThenGetTheFraudCheckStatusFromTheResponse(simpleFraudCheckResponse);
             
-            _saveSimpleFraudDetailsCommand.Execute(simpleFraudCheckResponse, customerOrder);
+            await _saveSimpleFraudDetailsCommand.Execute(simpleFraudCheckResponse, customerOrder);
             
             return new FraudCheckResponse
             {
@@ -40,7 +40,7 @@ public class SimpleFraudFraudCheckService : IFraudCheckService
             };
         }
 
-        return _nextFraudCheckService.Check(orderId, customerOrder);
+        return await _nextFraudCheckService.Check(orderId, customerOrder);
     }
 
     private static FraudCheckStatus ThenGetTheFraudCheckStatusFromTheResponse(SimpleFraudResult simpleFraudCheckResponse)

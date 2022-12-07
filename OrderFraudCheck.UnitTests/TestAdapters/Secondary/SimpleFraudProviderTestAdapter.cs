@@ -21,5 +21,5 @@ public class SimpleFraudProviderTestAdapter : ISimpleFraudProvider
       
     }
 
-    public SimpleFraudDetails SimpleFraudDetails { get; set; }
+    public SimpleFraudDetails SimpleFraudDetails { get; set; } = null!;
 }

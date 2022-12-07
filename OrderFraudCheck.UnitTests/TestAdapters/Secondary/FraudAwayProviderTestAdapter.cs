@@ -14,11 +14,11 @@ public class FraudAwayProviderTestAdapter : IFraudAwayProvider
         _responseCode = responseCode;
     }
 
-    public FraudAwayResult Check(FraudAwayDetails fraudAwayDetails)
+    public Task<FraudAwayResult> Check(FraudAwayDetails fraudAwayDetails)
     {
         FraudAwayDetails = fraudAwayDetails;
-        return new FraudAwayResult { FraudRiskScore = _fraudRiskScore, ResponseCode = _responseCode };
+        return Task.FromResult(new FraudAwayResult { FraudRiskScore = _fraudRiskScore, ResponseCode = _responseCode });
     }
 
-    public FraudAwayDetails FraudAwayDetails { get; set; }
+    public FraudAwayDetails FraudAwayDetails { get; set; } = null!;
 }

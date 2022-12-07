@@ -4,5 +4,10 @@ namespace MotorwayPaymentsCodeTest.PrimaryPorts;
 
 public interface IOrderFraudCheck
 {
-    FraudCheckResponse Check(string orderId, CustomerOrder customerOrder);
+    Task<FraudCheckResponse> Check(string orderId, CustomerOrder customerOrder);
+}
+
+public interface IOrderFraudCheckQuery
+{
+    Task<FraudCheckResponse> Get(string orderId);
 }

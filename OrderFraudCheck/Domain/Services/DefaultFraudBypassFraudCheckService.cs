@@ -15,9 +15,9 @@ public class DefaultFraudBypassFraudCheckService : IFraudCheckService
         _bypassThresholdAmount = bypassThresholdAmount;
     }
 
-    public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
+    public  async Task<FraudCheckResponse> Check(string orderId, CustomerOrder customerOrder)
     {
-        _saveBypassThresholdDetailsCommand.Execute(_bypassThresholdAmount, customerOrder);
+        await _saveBypassThresholdDetailsCommand.Execute(_bypassThresholdAmount, customerOrder);
         return new FraudCheckResponse
         {
             FraudCheckStatus = customerOrder.OrderAmount <= _bypassThresholdAmount ? FraudCheckStatus.Passed : FraudCheckStatus.Failed,

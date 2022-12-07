@@ -1,7 +1,6 @@
-using Moq;
+using MotorwayPaymentsCodeTest.Domain;
 using MotorwayPaymentsCodeTest.Domain.Models;
 using MotorwayPaymentsCodeTest.Domain.Services;
-using MotorwayPaymentsCodeTest.SecondaryPorts;
 using OrderFraudCheck.UnitTests.TestAdapters.Primary;
 using OrderFraudCheck.UnitTests.TestAdapters.Secondary;
 using TestStack.BDDfy;
@@ -9,10 +8,8 @@ using TestStack.BDDfy.Xunit;
 
 namespace OrderFraudCheck.UnitTests;
 
-public class SimpleFraudTests
+public class SimpleFraudTests : FraudTestsBase
 {
-    private CustomerOrder _customerOrder;
-    private Mock<IFraudAwayProvider> _fraudCheckAway;
     private FraudCheckResponse _result;
     private MotorwayPaymentsCodeTest.Domain.OrderFraudCheck _orderFraudCheck;
     private decimal _riskScoreThreshold;
@@ -29,103 +26,126 @@ public class SimpleFraudTests
     [InlineData(500)]
     [InlineData(503)]
     [InlineData(400)]
-    public void  RequestSentToSimpleFraudCorrectly(int responseCode)
+    public void RequestSentToSimpleFraudCorrectly(int responseCode)
     {
-        this.Given(s => s.A_Customer_Order())
-            .And(s=> s.Fraud_Away_Returns_Response(0, responseCode))
+        this.Given(s => s.A_Customer_Order(Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54")))
+            .And(s => s.Fraud_Away_Returns_Response(0, responseCode))
             .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
             .Then(s => s.The_Details_Of_The_Customer_Order_Are_Sent_To_SimpleFraud_Correctly())
             .BDDfy();
     }
 
-    
-     [BddfyFact]
-     public void ReturnPassedResultFromSimpleFraud()
-   {
-       int riskScoreThreshold = 0;
-       int riskScore = 0;
-   
-       this.Given(s => s.A_Customer_Order())
-           .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
-           .And(s => s.Fraud_Away_Returns_Response(riskScore, 500))
-           .And(_ => _.Simple_Fraud_Returns_Response("Pass", 200))
-           .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
-           .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Passed))
-           .And(s => s.CustomerGuid_Is_Returned())
-           .And(s => s.Order_Id_Is_Returned())
-           .And(s => s.Order_Amount_Is_Returned())
-           .And(s => s.Details_Of_The_SimpleFraudResponse_Are_Saved_To_The_Database("Pass"))
-           .And(s => s.Details_Of_The_Order_Are_Saved_To_The_Database())
-           .BDDfy();
+    [BddfyFact]
+    public void ReturnPassedResultFromSimpleFraud()
+    {
+        int riskScoreThreshold = 0;
+        int riskScore = 0;
+
+        this.Given(s => s.A_Customer_Order(_customerId))
+            .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
+            .And(s => s.Fraud_Away_Returns_Response(riskScore, 500))
+            .And(s => s.Simple_Fraud_Returns_Response("Pass", 200))
+            .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
+            .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Passed))
+            .And(s => s.CustomerGuid_Is_Returned())
+            .And(s => s.Order_Id_Is_Returned())
+            .And(s => s.Order_Amount_Is_Returned())
+            .And(s => s.Details_Of_The_SimpleFraudResponse_Are_Saved_To_The_Database("Pass"))
+            .And(s => s.Details_Of_The_Order_Are_Saved_To_The_Database())
+            .BDDfy();
     }
-     
-     [BddfyFact]
-     public void ReturnFailedResultFromSimpleFraud()
-     {
-         int riskScoreThreshold = 0;
-         int riskScore = 0;
-   
-         this.Given(s => s.A_Customer_Order())
-             .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
-             .And(s => s.Fraud_Away_Returns_Response(riskScore, 500))
-             .And(_ => _.Simple_Fraud_Returns_Response("Fail", 200))
-             .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
-             .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Failed))
-             .And(s => s.CustomerGuid_Is_Returned())
-             .And(s => s.Order_Id_Is_Returned())
-             .And(s => s.Order_Amount_Is_Returned())
-             .And(s => s.Details_Of_The_SimpleFraudResponse_Are_Saved_To_The_Database("Fail"))
-             .And(s => s.Details_Of_The_Order_Are_Saved_To_The_Database())
-             .BDDfy();
-     }
-     
-     [BddfyTheory]
-     [InlineData(FraudCheckStatus.Failed)]
-     [InlineData(FraudCheckStatus.Passed)]
-     public void DuplicateOrderSimpleFraudCheckRequest(FraudCheckStatus fraudCheckStatus)
-     {
-   
-         this.Given(s => s.An_Order_Fraud_Check_From_Simple_Fraud_Already_Exists(_customerId, fraudCheckStatus))
-             .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
-             .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(fraudCheckStatus))
-             .And(s => s.CustomerGuid_Is_Returned())
-             .And(s => s.Order_Id_Is_Returned())
-             .And(s => s.Order_Amount_Is_Returned())
-             .And(s=> s.No_Remote_Calls_Are_Made())
-             .And(s=> s.No_Details_Are_Saved_To_The_Database())
-             .BDDfy();
-     }
 
-     private void No_Details_Are_Saved_To_The_Database()
-     {
-         Assert.Equal(null,_saveSimpleFraudDetailsCommandAdapter.Response);
-         Assert.Equal(null, _saveFraudAwayDetailsCommandTestAdapter.Response);
-     }
+    [BddfyFact]
+    public void ReturnFailedResultFromSimpleFraud()
+    {
+        int riskScoreThreshold = 0;
+        int riskScore = 0;
 
-     private void No_Remote_Calls_Are_Made()
-     {
-         Assert.Equal(null,_simpleFraudProviderTestAdapter.SimpleFraudDetails);
-         Assert.Equal(null, _fraudAwayProvider.FraudAwayDetails);
-     }
+        this.Given(s => s.A_Customer_Order(Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54")))
+            .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
+            .And(s => s.Fraud_Away_Returns_Response(riskScore, 500))
+            .And(_ => _.Simple_Fraud_Returns_Response("Fail", 200))
+            .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
+            .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Failed))
+            .And(s => s.CustomerGuid_Is_Returned())
+            .And(s => s.Order_Id_Is_Returned())
+            .And(s => s.Order_Amount_Is_Returned())
+            .And(s => s.Details_Of_The_SimpleFraudResponse_Are_Saved_To_The_Database("Fail"))
+            .And(s => s.Details_Of_The_Order_Are_Saved_To_The_Database())
+            .BDDfy();
+    }
 
-     private void An_Order_Fraud_Check_From_Simple_Fraud_Already_Exists(Guid customerId,
-         FraudCheckStatus fraudCheckStatus)
-     {
-         _orderFraudCheckDetails = new OrderFraudCheckDetails
-         {
-             FraudCheckStatus = fraudCheckStatus,
-             CustomerOrder = TestData.DefaultCustomer(customerId)
-         };
-     }
+    [BddfyTheory]
+    [InlineData(FraudCheckStatus.Failed)]
+    [InlineData(FraudCheckStatus.Passed)]
+    public void DuplicateOrderSimpleFraudCheckRequest(FraudCheckStatus fraudCheckStatus)
+    {
+        this.Given(s => s.An_Order_Fraud_Check_From_Simple_Fraud_Already_Exists(_customerId, fraudCheckStatus))
+            .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
+            .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(fraudCheckStatus))
+            .And(s => s.CustomerGuid_Is_Returned())
+            .And(s => s.Order_Id_Is_Returned())
+            .And(s => s.Order_Amount_Is_Returned())
+            .And(s => s.No_Remote_Calls_Are_Made())
+            .And(s => s.No_Details_Are_Saved_To_The_Database())
+            .BDDfy();
+    }
+    
+    [BddfyTheory]
+    [InlineData(FraudCheckStatus.Passed)]
+    [InlineData(FraudCheckStatus.Failed)]
+    public void RetrievingExistingSimpleFraudCheck(FraudCheckStatus fraudCheckStatus)
+    {
+        this.Given(s => s.An_Order_Fraud_Check_From_Simple_Fraud_Already_Exists(_customerId, fraudCheckStatus))
+            .When(s => s.The_Order_Fraud_Check_Is_Queried("ABC123"))
+            .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(fraudCheckStatus))
+            .And(s => s.CustomerGuid_Is_Returned())
+            .And(s => s.Order_Id_Is_Returned())
+            .And(s => s.Order_Amount_Is_Returned())
+            .BDDfy();
+    }
+
+    private async Task The_Order_Fraud_Check_Is_Queried(string orderId)
+    {
+        var getOrderFraudCheckQuery = new GetOrderFraudCheckQueryTestAdapter(_orderFraudCheckDetails);
+        var orderFraudCheckQuery = new OrderFraudCheckQuery(getOrderFraudCheckQuery);
+        _result = await orderFraudCheckQuery.Get(orderId);
+    }
+
+    private void No_Details_Are_Saved_To_The_Database()
+    {
+        Assert.Null(_saveSimpleFraudDetailsCommandAdapter.Response);
+        Assert.Null(_saveFraudAwayDetailsCommandTestAdapter.Response);
+    }
+
+    private void No_Remote_Calls_Are_Made()
+    {
+        Assert.Null(_simpleFraudProviderTestAdapter.SimpleFraudDetails);
+        Assert.Null(_fraudAwayProvider.FraudAwayDetails);
+    }
+
+    private void An_Order_Fraud_Check_From_Simple_Fraud_Already_Exists(Guid customerId,
+        FraudCheckStatus fraudCheckStatus)
+    {
+        _orderFraudCheckDetails = new OrderFraudCheckDetails
+        {
+            FraudCheckStatus = fraudCheckStatus,
+            CustomerOrder = TestData.DefaultCustomer(customerId),
+            SimpleFraudResult = new SimpleFraudResult
+            {
+                Result = "Passed",
+                ResponseCode = 200
+            }
+        };
+    }
 
 
-     public void Simple_Fraud_Returns_Response(string result, int responseCode)
-     {
-         _simpleFraudProviderTestAdapter = new SimpleFraudProviderTestAdapter(result, responseCode);
-     }
-     
- 
-    public void The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus expectedStatus)
+    private void Simple_Fraud_Returns_Response(string result, int responseCode)
+    {
+        _simpleFraudProviderTestAdapter = new SimpleFraudProviderTestAdapter(result, responseCode);
+    }
+
+    private void The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus expectedStatus)
     {
         Assert.Equal(expectedStatus, _result.FraudCheckStatus);
     }
@@ -153,7 +173,7 @@ public class SimpleFraudTests
 
     private void Order_Id_Is_Returned()
     {
-       Assert.Equal("ABC123", _result.OrderId);
+        Assert.Equal("ABC123", _result.OrderId);
     }
 
     private void CustomerGuid_Is_Returned()
@@ -175,42 +195,27 @@ public class SimpleFraudTests
         _riskScoreThreshold = riskScoreThreshold;
     }
 
-    private void A_Customer_Order()
-    {
-        _customerOrder = new CustomerOrder
-        {
-            CustomerGuid = Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54"),
-            OrderAmount = 1500.55M,
-            CustomerAddress = new Address
-            {
-                FirstName = "John",
-                LastName = "Doe",
-                Line1 = "10 High Street",
-                City = "London",
-                Region = "Greater London",
-                PostalCode = "W1T 3HE"
-            }
-        };
-    }
-
-    private void The_Order_Fraud_Check_Is_Requested(string orderId)
+    private async Task The_Order_Fraud_Check_Is_Requested(string orderId)
     {
         _simpleFraudProviderTestAdapter ??= new SimpleFraudProviderTestAdapter("Passed", 200);
         _saveSimpleFraudDetailsCommandAdapter = new SaveSimpleFraudDetailsCommandAdapter();
-        var simpleFraudFraudCheckService = new SimpleFraudFraudCheckService(null, _simpleFraudProviderTestAdapter,
+        var simpleFraudFraudCheckService = new SimpleFraudFraudCheckService(null!, _simpleFraudProviderTestAdapter,
             _saveSimpleFraudDetailsCommandAdapter);
-        
+
         _fraudAwayResult = _fraudAwayResult ?? new FraudAwayResult { ResponseCode = 200, FraudRiskScore = 1 };
         _fraudAwayProvider = new FraudAwayProviderTestAdapter(_fraudAwayResult.FraudRiskScore, _fraudAwayResult.ResponseCode);
         _saveFraudAwayDetailsCommandTestAdapter = new SaveFraudAwayDetailsCommandTestAdapter();
-        var fraudAwayFraudCheckService = new FraudAwayFraudCheckService(simpleFraudFraudCheckService, _fraudAwayProvider,
+        var fraudAwayFraudCheckService = new FraudAwayFraudCheckService(simpleFraudFraudCheckService,
+            _fraudAwayProvider,
             _saveFraudAwayDetailsCommandTestAdapter, _riskScoreThreshold);
 
         var getOrderFraudCheckQuery = new GetOrderFraudCheckQueryTestAdapter(_orderFraudCheckDetails);
-        var idempotentFraudCheckService = new IdempotentRemoteFraudCheckService(fraudAwayFraudCheckService, getOrderFraudCheckQuery);
+        var idempotentFraudCheckService =
+            new IdempotentRemoteFraudCheckService(fraudAwayFraudCheckService, getOrderFraudCheckQuery);
 
         _orderFraudCheck = new MotorwayPaymentsCodeTest.Domain.OrderFraudCheck(idempotentFraudCheckService);
-        _result = _orderFraudCheck.Check(orderId, _customerOrder); }
+        _result = await _orderFraudCheck.Check(orderId, _customerOrder);
+    }
 
     private void The_Details_Of_The_Customer_Order_Are_Sent_To_SimpleFraud_Correctly()
     {

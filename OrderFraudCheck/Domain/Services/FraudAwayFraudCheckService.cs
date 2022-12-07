@@ -17,16 +17,16 @@ public class FraudAwayFraudCheckService : IFraudCheckService
         _saveFraudAwayDetailsCommand = saveFraudAwayDetailsCommand ?? throw new ArgumentNullException(nameof(saveFraudAwayDetailsCommand));
         _riskScoreThreshold = riskScoreThreshold;
     }
-    public FraudCheckResponse Check(string orderId, CustomerOrder customerOrder)
+    public async Task<FraudCheckResponse> Check(string orderId, CustomerOrder customerOrder)
     {
         FraudCheckStatus fraudCheckStatus;
-        var fraudAwayResponse = _fraudAwayProvider.Check(BuildFraudAwayDetails(customerOrder));
+        var fraudAwayResponse = await _fraudAwayProvider.Check(BuildFraudAwayDetails(customerOrder));
 
         if (ResponseIsSuccessful(fraudAwayResponse))
         {
             fraudCheckStatus = ThenGetTheFraudCheckStatusFromTheRiskScore(fraudAwayResponse);
 
-            _saveFraudAwayDetailsCommand.Execute(fraudAwayResponse, customerOrder, fraudCheckStatus);
+            await _saveFraudAwayDetailsCommand.Execute(fraudAwayResponse, customerOrder, fraudCheckStatus);
 
             return new FraudCheckResponse
             {
@@ -37,7 +37,7 @@ public class FraudAwayFraudCheckService : IFraudCheckService
             };
         }
      
-        return _nextFraudCheckService.Check(orderId, customerOrder);
+        return await _nextFraudCheckService.Check(orderId, customerOrder);
       
     }
 

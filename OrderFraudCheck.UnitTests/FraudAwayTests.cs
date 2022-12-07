@@ -1,3 +1,4 @@
+using MotorwayPaymentsCodeTest.Domain;
 using MotorwayPaymentsCodeTest.Domain.Models;
 using MotorwayPaymentsCodeTest.Domain.Services;
 using OrderFraudCheck.UnitTests.TestAdapters.Primary;
@@ -7,9 +8,8 @@ using TestStack.BDDfy.Xunit;
 
 namespace OrderFraudCheck.UnitTests;
 
-public class FraudAwayTests
+public class FraudAwayTests : FraudTestsBase
 {
-    private CustomerOrder _customerOrder;
     private FraudAwayProviderTestAdapter _fraudAwayProvider;
     private FraudCheckResponse _result;
     private MotorwayPaymentsCodeTest.Domain.OrderFraudCheck _orderFraudCheck;
@@ -22,7 +22,7 @@ public class FraudAwayTests
     [BddfyFact]
     public void RequestSentToFraudAwayCorrectly()
     {
-        this.Given(s => s.A_Customer_Order())
+        this.Given(s => s.A_Customer_Order(_customerId))
             .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
             .Then(s => s.The_Details_Of_The_Customer_Order_Are_Sent_To_FraudAway_Correctly())
             .BDDfy();
@@ -34,8 +34,7 @@ public class FraudAwayTests
         decimal riskScoreThreshold = 0;
         decimal riskScore = 0;
 
-        _customerId = Guid.NewGuid();
-        this.Given(s => s.A_Customer_Order())
+        this.Given(s => s.A_Customer_Order(_customerId))
             .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
             .And(s => s.Fraud_Away_Returns_Response(riskScore, 200))
             .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
@@ -59,7 +58,7 @@ public class FraudAwayTests
         decimal riskScoreThreshold = 0;
         decimal riskScore = 0;
 
-        this.Given(s => s.A_Customer_Order())
+        this.Given(s => s.A_Customer_Order(_customerId))
             .And(s => s.The_Configured_Maximum_Acceptable_Risk_Score(riskScoreThreshold))
             .And(s => s.Fraud_Away_Returns_Response(riskScore, 200))
             .When(s => s.The_Order_Fraud_Check_Is_Requested("ABC123"))
@@ -93,14 +92,36 @@ public class FraudAwayTests
             .BDDfy();
     }
 
+
+    [BddfyTheory]
+    [InlineData(FraudCheckStatus.Passed)]
+    [InlineData(FraudCheckStatus.Failed)]
+    public void RetrievingExistingFraudAwayCheck(FraudCheckStatus fraudCheckStatus)
+    {
+        this.Given(s => s.An_Order_Fraud_Check_From_Fraud_Away_Already_Exists(_customerId, fraudCheckStatus))
+            .When(s => s.The_Order_Fraud_Check_Is_Queried("ABC123"))
+            .Then(s => s.The_Fraud_Check_Status_Returned_From_The_Service_Is(fraudCheckStatus))
+            .And(s => s.CustomerGuid_Is_Returned())
+            .And(s => s.Order_Id_Is_Returned())
+            .And(s => s.Order_Amount_Is_Returned())
+            .BDDfy();
+    }
+
+    private async Task The_Order_Fraud_Check_Is_Queried(string orderId)
+    {
+        var getOrderFraudCheckQuery = new GetOrderFraudCheckQueryTestAdapter(_orderFraudCheckDetails);
+        var orderFraudCheckQuery = new OrderFraudCheckQuery(getOrderFraudCheckQuery);
+        _result = await orderFraudCheckQuery.Get(orderId);
+    }
+
     private void No_Details_Are_Saved_To_The_Database()
     {
-        Assert.Equal(null, _saveFraudAwayDetailsCommandTestAdapter.Response);
+        Assert.Null(_saveFraudAwayDetailsCommandTestAdapter.Response);
     }
 
     private void No_Remote_Calls_Are_Made()
     {
-        Assert.Equal(null, _fraudAwayProvider.FraudAwayDetails);
+        Assert.Null(_fraudAwayProvider.FraudAwayDetails);
     }
     
     private void An_Order_Fraud_Check_From_Fraud_Away_Already_Exists(Guid customerGuid,
@@ -109,11 +130,16 @@ public class FraudAwayTests
         _orderFraudCheckDetails = new OrderFraudCheckDetails
         {
             FraudCheckStatus = fraudCheckStatus,
-            CustomerOrder = TestData.DefaultCustomer(customerGuid)
+            CustomerOrder = TestData.DefaultCustomer(customerGuid),
+            FraudAwayResult = new FraudAwayResult
+            {
+                FraudRiskScore = 10,
+                ResponseCode = 200
+            }
         };
     }
 
-    public void The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus expectedStatus)
+    private void The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus expectedStatus)
     {
         Assert.Equal(expectedStatus, _result.FraudCheckStatus);
     }
@@ -163,34 +189,29 @@ public class FraudAwayTests
         _riskScoreThreshold = riskScoreThreshold;
     }
 
-    private void A_Customer_Order()
-    {
-        _customerOrder = TestData.DefaultCustomer(_customerId);
-    }
-
-    private void The_Order_Fraud_Check_Is_Requested(string orderId)
+    private async Task The_Order_Fraud_Check_Is_Requested(string orderId)
     {
         _riskScoreThreshold = _riskScoreThreshold == 0 ? 100 : _riskScoreThreshold;
         _fraudAwayResult = _fraudAwayResult ?? new FraudAwayResult { ResponseCode = 200, FraudRiskScore = 1 };
         _fraudAwayProvider = new FraudAwayProviderTestAdapter(_fraudAwayResult.FraudRiskScore, _fraudAwayResult.ResponseCode);
         _saveFraudAwayDetailsCommandTestAdapter = new SaveFraudAwayDetailsCommandTestAdapter();
 
-        var fraudAwayFraudCheckService = new FraudAwayFraudCheckService(null, _fraudAwayProvider,
+        var fraudAwayFraudCheckService = new FraudAwayFraudCheckService(null!, _fraudAwayProvider,
             _saveFraudAwayDetailsCommandTestAdapter, _riskScoreThreshold);
 
         var getOrderFraudCheckQuery = new GetOrderFraudCheckQueryTestAdapter(_orderFraudCheckDetails);
         var idempotentFraudCheckService = new IdempotentRemoteFraudCheckService(fraudAwayFraudCheckService, getOrderFraudCheckQuery);
         
         _orderFraudCheck = new MotorwayPaymentsCodeTest.Domain.OrderFraudCheck(idempotentFraudCheckService);
-        _result = _orderFraudCheck.Check(orderId, _customerOrder);
+        _result = await _orderFraudCheck.Check(orderId, _customerOrder);
     }
 
     private void The_Details_Of_The_Customer_Order_Are_Sent_To_FraudAway_Correctly()
     {
-        Assert.Equal(_fraudAwayProvider.FraudAwayDetails.PersonFullName, "John Doe");
-        Assert.Equal(_fraudAwayProvider.FraudAwayDetails.PersonAddress.AddressLine1, "10 High Street");
-        Assert.Equal(_fraudAwayProvider.FraudAwayDetails.PersonAddress.Town, "London");
-        Assert.Equal(_fraudAwayProvider.FraudAwayDetails.PersonAddress.County, "Greater London");
-        Assert.Equal(_fraudAwayProvider.FraudAwayDetails.PersonAddress.PostCode, "W1T 3HE");
+        Assert.Equal("John Doe", _fraudAwayProvider.FraudAwayDetails.PersonFullName);
+        Assert.Equal("10 High Street", _fraudAwayProvider.FraudAwayDetails.PersonAddress.AddressLine1);
+        Assert.Equal("London", _fraudAwayProvider.FraudAwayDetails.PersonAddress.Town);
+        Assert.Equal("Greater London", _fraudAwayProvider.FraudAwayDetails.PersonAddress.County);
+        Assert.Equal("W1T 3HE", _fraudAwayProvider.FraudAwayDetails.PersonAddress.PostCode);
     }
 }
