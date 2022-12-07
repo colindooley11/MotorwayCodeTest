@@ -44,4 +44,4 @@ I have made a few assumptions:
 ## Outstanding work
 - Although I have all of the tests green, I committed some sins near the end of the test and the query and idempotency checking needs refactoring to utilise code re-use and some desirable characteristics like SRP
 - I really wanted to introduce an Aggregate and Event Sourcing, but I could'nt work out how to model transactional consistency (as we have 2 3rd parties to contend with, and both could fail for multiple reasons as well our own database calls failing)
-- The Sut's could really use a builder(s0, I started and then backed out as I thought this was overkill as the GWTs kind of structure building of the SUT anywa
+- The Sut's could really use a builder(I started and then backed out as I thought this was overkill as the GWTs kind of structure building of the SUT anyway)
