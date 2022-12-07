@@ -20,6 +20,7 @@ docker build -t motorwaypaymenttest/colind .
 docker run  motorwaypaymenttest/colind
 ```
 
+### Structure 
 The tests are pretty faithful to the GWTs provided with a bit of tweaking to enable get the SUT into shape as necessary with various state etc.
 The test names are PascalCased and stripped of whitespaces from the test document for ease of reference
 
@@ -30,8 +31,8 @@ There are 2 main folders:
 The core logic is split via  `OrderFraudCheck` (command) and `OrderFraudCheckQuery` (query) this `cqrs` style approach is accompanied with `cqs` commands and queries for the database persistence and retrieval.
 
 
-
-The code test provides a naive implementation of a Ports and Adapters approach with a really sharp focus on domain and logic within it,  this works reasonably well with a number of test adapter implementations for the secondary ports.
+### Notes
+The code test provides a naive implementation of a [Ports and Adapters](https://herbertograca.com/2017/09/14/ports-adapters-architecture/) approach with a really sharp focus on domain and logic within it,  this works reasonably well with a number of test adapter implementations for the secondary ports.
 In a larger code base as well as real adapters, integration tests for these adapters would need to be provided 
 
 There is a distinct lack of mappers! Using Ports and Adapters it seems I can work within the confines of the ports and forget everything outside 
@@ -53,4 +54,5 @@ I have made a few assumptions:
 ## Outstanding work
 - Although I have all of the tests green, I committed some sins near the end of the test and the query and idempotency checking needs refactoring to utilise code re-use and some desirable characteristics like SRP
 - I really wanted to introduce an Aggregate and Event Sourcing, but I could'nt work out how to model transactional consistency (as we have 2 3rd parties to contend with, and both could fail for multiple reasons as well our own database calls failing)
-- The Sut's could really use a builder(I started and then backed out as I thought this was overkill as the GWTs kind of structure building of the SUT anyway)
+- The SUTs' could really use a builder(I started and then backed out as I thought this was overkill as the GWTs kind of structure building of the SUT anyway)
+- Logging, Dependency Injection and any type of "real implementation" have been omitted for brevity, obviously to productionise any of this, this would all need to be added, as well as this sitting in a CI/CD pipeline of some descriptio and an appropriately host application (a messaging endpoint, API etc)
