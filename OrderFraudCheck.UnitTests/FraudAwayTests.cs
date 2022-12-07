@@ -102,6 +102,7 @@ public class FraudAwayTests
     {
         Assert.Equal(null, _fraudAwayProvider.FraudAwayDetails);
     }
+    
     private void An_Order_Fraud_Check_From_Fraud_Away_Already_Exists(Guid customerGuid,
         FraudCheckStatus fraudCheckStatus)
     {

@@ -12,12 +12,12 @@ namespace OrderFraudCheck.UnitTests;
 public class DefaultBypassTests
 {
     private CustomerOrder _customerOrder;
-    private IFraudAwayProvider _fraudAwayProvider;
+    private FraudAwayProviderTestAdapter _fraudAwayProvider;
     private FraudCheckResponse _result;
     private MotorwayPaymentsCodeTest.Domain.OrderFraudCheck _orderFraudCheck;
     private decimal _riskScoreThreshold;
     private FraudAwayResult _fraudAwayResult;
-    private ISaveFraudAwayDetailsCommand _saveFraudAwayDetailsCommand;
+    private SaveFraudAwayDetailsCommandTestAdapter _saveFraudAwayDetailsCommand;
     private ByPassThersholdDetailsCommandTestAdapter _byPassThersholdDetailsCommandTestAdapter;
     private Guid _customerId = Guid.Parse("57406e32-6a43-4dae-81d9-38bd7e349d54");
     private decimal _bypassAmountThreshold;
@@ -74,7 +74,7 @@ public class DefaultBypassTests
             .WithExamples(new ExampleTable("orderAmount", "bypassAmountThreshold")
             {
                 { 0.01, 0 },
-                { 10000000, 9999999 },
+                { 10000000, 9999999 }
             }).BDDfy();
     }
     
@@ -88,6 +88,7 @@ public class DefaultBypassTests
             .And(s => s.A_Customer_Order(orderAmount))
             .And(s=> s.The_Saved_Amounts(orderAmount, bypassAmountThreshold))
             .When(s => s.The_Fraud_Check_Is_Requested("ABC123"))
+            .And(s=> s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Passed))
             .And(s => s.CustomerGuid_Is_Returned())
             .And(s => s.Order_Id_Is_Returned())
             .And(s => s.Order_Amount_Is_Returned(orderAmount))
@@ -96,9 +97,46 @@ public class DefaultBypassTests
                 { 999.99, 1000 },
                 { 9999999.99, 10000000 },
                 { 1, 1 }
-            }).BDDfy();
+            })
+            .And(s=> s.No_Remote_Calls_Are_Made())
+            .And(s=> s.No_Details_Are_Saved_To_The_Database())
+            .BDDfy();
+    }
+    
+    [BddfyFact]
+    public void DuplicateDefaultFraudBypassFailedResult()
+    {
+        decimal orderAmount = 0;
+        decimal bypassAmountThreshold = 0;
+
+        this.Given(s => s.A_Bypassed_Order_Fraud_Check_Already_Exists(orderAmount,bypassAmountThreshold))
+            .And(s => s.A_Customer_Order(orderAmount))
+            .And(s=> s.The_Saved_Amounts(orderAmount, bypassAmountThreshold))
+            .When(s => s.The_Fraud_Check_Is_Requested("ABC123"))
+            .And(s=> s.The_Fraud_Check_Status_Returned_From_The_Service_Is(FraudCheckStatus.Failed))
+            .And(s => s.CustomerGuid_Is_Returned())
+            .And(s => s.Order_Id_Is_Returned())
+            .And(s => s.Order_Amount_Is_Returned(orderAmount))
+            .WithExamples(new ExampleTable("orderAmount", "bypassAmountThreshold")
+            {
+                { 0.01, 0 },
+                { 10000000, 9999999 }
+            })
+            .And(s=> s.No_Remote_Calls_Are_Made())
+            .And(s=> s.No_Details_Are_Saved_To_The_Database())
+            .BDDfy();
     }
 
+    private void No_Details_Are_Saved_To_The_Database()
+    {
+        Assert.Equal(null, _saveFraudAwayDetailsCommand.Response);
+    }
+
+    private void No_Remote_Calls_Are_Made()
+    {
+        Assert.Equal(null, _fraudAwayProvider.FraudAwayDetails);
+    }
+    
     private void The_Saved_Amounts(decimal orderAmount, decimal bypassAmountThreshold)
     {
         _orderFraudCheckDetails = new OrderFraudCheckDetails
@@ -208,15 +246,5 @@ public class DefaultBypassTests
         
         _orderFraudCheck = new MotorwayPaymentsCodeTest.Domain.OrderFraudCheck(idempotentFraudCheckService);
         _result = _orderFraudCheck.Check(orderId, _customerOrder);
-    }
-
-    private bool AssertFraudCheckAwayRequest(MotorwayPaymentsCodeTest.Domain.Models.FraudAwayDetails details)
-    {
-        Assert.Equal(details.PersonFullName, "John Doe");
-        Assert.Equal(details.PersonAddress.AddressLine1, "10 High Street");
-        Assert.Equal(details.PersonAddress.Town, "London");
-        Assert.Equal(details.PersonAddress.County, "Greater London");
-        Assert.Equal(details.PersonAddress.PostCode, "W1T 3HE");
-        return true;
     }
 }

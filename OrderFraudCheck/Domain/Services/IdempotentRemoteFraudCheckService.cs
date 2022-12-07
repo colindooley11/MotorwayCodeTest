@@ -25,6 +25,7 @@ public class IdempotentRemoteFraudCheckService : IFraudCheckService
                    orderFraudCheckDetails.DefaultFraudResult.OrderAmount <= orderFraudCheckDetails.DefaultFraudResult.BypassThresholdAmount
                        ? FraudCheckStatus.Passed
                        : FraudCheckStatus.Failed;
+               
                return new FraudCheckResponse
                {
                    FraudCheckStatus = fraudCheckStatus,
