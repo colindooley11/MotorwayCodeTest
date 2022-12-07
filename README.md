@@ -1,7 +1,7 @@
 ## Motorway Payments Code Test 
 
 ### Prerequisites
-Please ensure you have the [.Net 6 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.403-windows-x64-installer) on your machine and run 
+Please ensure you have the [.Net 6 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.403-windows-x64-installer) on your machine and if not usign docker cd into where you clone the repo :) 
 
 cd into working directory
 ```
@@ -44,3 +44,4 @@ I have made a few assumptions:
 ## Outstanding work
 - Although I have all of the tests green, I committed some sins near the end of the test and the query and idempotency checking needs refactoring to utilise code re-use and some desirable characteristics like SRP
 - I really wanted to introduce an Aggregate and Event Sourcing, but I could'nt work out how to model transactional consistency (as we have 2 3rd parties to contend with, and both could fail for multiple reasons as well our own database calls failing)
+- The Sut's could really use a builder(s0, I started and then backed out as I thought this was overkill as the GWTs kind of structure building of the SUT anywa
