@@ -1,8 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderFraudCheck", "OrderFraudCheck\OrderFraudCheck.csproj", "{5A3A3D44-B07F-48B4-B7C5-0C2708C954AC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C5450FA2-7788-4816-BFD9-43B612C9C0CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderFraudCheck.UnitTests", "OrderFraudCheck.UnitTests\OrderFraudCheck.UnitTests.csproj", "{EBACF696-3A9C-4FCA-A972-04AB9FFFC46C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2A722B34-76BD-4514-BF41-5EACB32B8B20}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{F10DAF50-4750-4CF9-A65E-951E3A498429}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		Dockerfile = Dockerfile
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderFraudCheck", "src\OrderFraudCheck\OrderFraudCheck.csproj", "{9FDF0745-73AD-40D9-B48D-15186EB69E14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderFraudCheck.UnitTests", "tests\OrderFraudCheck.UnitTests\OrderFraudCheck.UnitTests.csproj", "{63A0B38E-2A59-4E16-B8E9-D8402EBAC4D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,13 +20,17 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5A3A3D44-B07F-48B4-B7C5-0C2708C954AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5A3A3D44-B07F-48B4-B7C5-0C2708C954AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5A3A3D44-B07F-48B4-B7C5-0C2708C954AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5A3A3D44-B07F-48B4-B7C5-0C2708C954AC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EBACF696-3A9C-4FCA-A972-04AB9FFFC46C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EBACF696-3A9C-4FCA-A972-04AB9FFFC46C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EBACF696-3A9C-4FCA-A972-04AB9FFFC46C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EBACF696-3A9C-4FCA-A972-04AB9FFFC46C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FDF0745-73AD-40D9-B48D-15186EB69E14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FDF0745-73AD-40D9-B48D-15186EB69E14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FDF0745-73AD-40D9-B48D-15186EB69E14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FDF0745-73AD-40D9-B48D-15186EB69E14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63A0B38E-2A59-4E16-B8E9-D8402EBAC4D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63A0B38E-2A59-4E16-B8E9-D8402EBAC4D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63A0B38E-2A59-4E16-B8E9-D8402EBAC4D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63A0B38E-2A59-4E16-B8E9-D8402EBAC4D7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9FDF0745-73AD-40D9-B48D-15186EB69E14} = {C5450FA2-7788-4816-BFD9-43B612C9C0CC}
+		{63A0B38E-2A59-4E16-B8E9-D8402EBAC4D7} = {2A722B34-76BD-4514-BF41-5EACB32B8B20}
 	EndGlobalSection
 EndGlobal
