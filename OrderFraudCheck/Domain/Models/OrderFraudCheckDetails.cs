@@ -8,5 +8,7 @@ public class OrderFraudCheckDetails
     
     public SimpleFraudResult SimpleFraudResult { get; set; }
     
+    public DefaultFraudResult DefaultFraudResult { get; set; }
+    
     public FraudCheckStatus FraudCheckStatus { get; set; }
 }

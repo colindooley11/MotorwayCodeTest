@@ -178,7 +178,7 @@ public class FraudAwayTests
             _saveFraudAwayDetailsCommandTestAdapter, _riskScoreThreshold);
 
         var getOrderFraudCheckQuery = new GetOrderFraudCheckQueryTestAdapter(_orderFraudCheckDetails);
-        var idempotentFraudCheckService = new IdempotentFraudCheckService(fraudAwayFraudCheckService, getOrderFraudCheckQuery);
+        var idempotentFraudCheckService = new IdempotentRemoteFraudCheckService(fraudAwayFraudCheckService, getOrderFraudCheckQuery);
         
         _orderFraudCheck = new MotorwayPaymentsCodeTest.Domain.OrderFraudCheck(idempotentFraudCheckService);
         _result = _orderFraudCheck.Check(orderId, _customerOrder);
