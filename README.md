@@ -1,7 +1,7 @@
 ## Motorway Payments Code Test 
 
 ### Prerequisites
-Please ensure you have the [.Net 6 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.403-windows-x64-installer) on your machine and if not usign docker cd into where you clone the repo :) 
+Please ensure you have the [.Net 6 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.403-windows-x64-installer) on your machine and if not using docker cd into where you clone the repo :) 
 
 cd into working directory
 ```
