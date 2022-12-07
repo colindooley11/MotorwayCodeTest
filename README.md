@@ -20,6 +20,15 @@ docker build -t motorwaypaymenttest/colind .
 docker run  motorwaypaymenttest/colind
 ```
 
+The tests are pretty faithful to the GWTs provided with a bit of tweaking to enable get the SUT into shape as necessary with various state etc.
+The test names are PascalCased and stripped of whitespaces from the test document for ease of reference
+
+There are 2 main folders: 
+-   ``test``  - contains unit tests and setup 
+-  ``src``   - contains the core domain logic
+
+The core logic is split via  `OrderFraudCheck` (command) and `OrderFraudCheckQuery` (query) this `cqrs` style approach is accompanied with `cqs` commands and queries for the database persistence and retrieval.
+
 
 
 The code test provides a naive implementation of a Ports and Adapters approach with a really sharp focus on domain and logic within it,  this works reasonably well with a number of test adapter implementations for the secondary ports.
